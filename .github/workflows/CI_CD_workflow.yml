@@ -30,7 +30,33 @@ jobs:
           pip install nbconvert  # Instalar nbconvert para ejecutar notebooks
           jupyter nbconvert --to notebook --execute --inplace Reto1_notebook.ipynb 
 
+      - name: Validate output files
+        run: |
+          if [ ! -f "output_file.txt" ]; then
+            echo "Error: output_file.txt not found!"
+            exit 1
+          fi
+          echo "Output file exists."
+
+      - name: Test RAG functionality
+        run: |
+          python -c "
+          from langchain.chains import RetrievalQA
+          from langchain_openai import ChatOpenAI
+          from langchain_chroma import Chroma
+          import os
+
+          vectorstore = Chroma(persist_directory='./chroma_db')
+          llm = ChatOpenAI(model='gpt-4o-mini', api_key=os.getenv('OPENAI_API_KEY'))
+          retrieval_qa = RetrievalQA(retriever=vectorstore.as_retriever(), llm=llm)
+          query = '¿Cómo configurar el periférico UART en el microcontrolador RH850?'
+          response = retrieval_qa({'query': query})
+          if not response['result']:
+              print('Error: No response generated!')
+              exit(1)
+          print('Test passed: Response generated successfully.')
+          "
+
       - name: Validate execution
         run: |
-          # Aquí puedes agregar cualquier validación que necesites
           echo "Notebook executed successfully!"
