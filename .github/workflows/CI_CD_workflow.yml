@@ -1,0 +1,36 @@
+name: CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - develop  # Cambia esto si tu rama principal tiene otro nombre
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # Cambia la versión de Python según tus necesidades
+
+      - name: Install dependencies
+        run: |
+          pip install -qU openai langchain langchain-openai langchain-chroma datasets tiktoken chromadb python-dotenv
+
+      - name: Run the notebook
+        run: |
+          pip install nbconvert  # Instalar nbconvert para ejecutar notebooks
+          jupyter nbconvert --to notebook --execute --inplace Reto1_notebook.ipynb 
+
+      - name: Validate execution
+        run: |
+          # Aquí puedes agregar cualquier validación que necesites
+          echo "Notebook executed successfully!"
